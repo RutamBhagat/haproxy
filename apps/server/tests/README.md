@@ -7,7 +7,7 @@ pgbench -h localhost -p 5432 -U postgres -d postgres -i -s 50
 # Test with simple protocol
 
 ```bash
-pgbench -h localhost -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10
+ulimit -n 20000 && pgbench -h localhost -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10
 ```
 
 ## Example output
