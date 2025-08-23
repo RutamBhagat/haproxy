@@ -1,68 +1,127 @@
 # haproxy
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Next.js, Hono, and more.
+## Project Overview
 
-## Features
+This is a high-availability PostgreSQL connection pooling system with HAProxy load balancing. The project uses a TypeScript monorepo structure with a Next.js frontend and Hono backend.
 
-- **TypeScript** - For type safety and improved developer experience
-- **Next.js** - Full-stack React framework
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Hono** - Lightweight, performant server framework
-- **Node.js** - Runtime environment
-- **Prisma** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Email & password authentication with Better Auth
-- **Turborepo** - Optimized monorepo build system
-- **Biome** - Linting and formatting
+## Essential Commands
 
-## Getting Started
-
-First, install the dependencies:
-
+### Development
 ```bash
+# Install dependencies (uses pnpm)
 pnpm install
-```
-## Database Setup
 
-This project uses PostgreSQL with Prisma.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
-
-3. Generate the Prisma client and push the schema:
-```bash
-pnpm db:push
-```
-
-
-Then, run the development server:
-
-```bash
+# Start all services (web on :3001, server on :3000)
 pnpm dev
+
+# Start specific services
+pnpm dev:web    # Frontend only (port 3001)
+pnpm dev:server # Backend only (port 3000)
+
+# Code quality
+pnpm check       # Run Biome formatting and linting
+pnpm check-types # TypeScript type checking
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
+### Database Operations
+```bash
+# Docker services
+pnpm db:start   # Start PostgreSQL + HAProxy + PgBouncer containers
+pnpm db:watch   # Start containers with logs
+pnpm db:stop    # Stop containers
+pnpm db:down    # Stop and remove containers
 
+# Database management
+pnpm db:push     # Push Prisma schema to database
+pnpm db:generate # Generate Prisma client and Kysely types
+pnpm db:migrate  # Run database migrations
+pnpm db:studio   # Open Prisma Studio GUI
+```
 
+### Performance Testing
+```bash
+# Initialize pgbench (from apps/server directory)
+pgbench -h localhost -p 5432 -U postgres -d postgres -i -s 50
 
-## Project Structure
+# Run load test
+pgbench -h localhost -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10
+```
+
+## Architecture
+
+### Database Stack (Docker Compose)
+The system implements a robust connection pooling architecture:
+
+1. **PostgreSQL** (port 5432 internally)
+   - Primary database with 2 CPU cores, 4GB RAM limits
+   - Data persisted in Docker volume
+
+2. **PgBouncer Instances** (pgb1, pgb2, pgb3)
+   - 3 identical connection poolers for redundancy
+   - Transaction pooling mode with 70 connections each
+   - Max 4000 client connections per instance
+   - Each runs on port 6432 internally
+
+3. **HAProxy** (port 5432 exposed, stats on 8404)
+   - Load balances across all PgBouncer instances
+   - Uses `leastconn` algorithm for distribution
+   - Health checks every 2 seconds
+   - Stats dashboard: http://localhost:8404/stats
+
+4. **Health Monitor**
+   - Monitors PgBouncer status via HAProxy stats API
+   - Sends Slack notifications on state changes
+   - Tracks state in `/tmp/pgbouncer_states.txt`
+   - Requires `SLACK_WEBHOOK_URL` environment variable
+
+### Application Structure
 
 ```
-haproxy/
-├── apps/
-│   ├── web/         # Frontend application (Next.js)
-│   └── server/      # Backend API (Hono)
+apps/
+├── server/          # Hono backend API
+│   ├── src/
+│   │   ├── routers/ # API route handlers
+│   │   ├── db/      # Database client and types
+│   │   └── lib/     # Shared utilities (auth)
+│   ├── docker/      # Docker configurations
+│   └── prisma/      # Database schemas
+└── web/             # Next.js frontend
 ```
 
-## Available Scripts
+### Key Technologies
+- **Monorepo**: Turborepo with pnpm workspaces
+- **Backend**: Hono framework with Better Auth
+- **Database**: PostgreSQL with Prisma ORM + Kysely query builder
+- **Frontend**: Next.js 15 with TailwindCSS and shadcn/ui
+- **Code Quality**: Biome for linting/formatting
 
-- `pnpm dev`: Start all applications in development mode
-- `pnpm build`: Build all applications
-- `pnpm dev:web`: Start only the web application
-- `pnpm dev:server`: Start only the server
-- `pnpm check-types`: Check TypeScript types across all apps
-- `pnpm db:push`: Push schema changes to database
-- `pnpm db:studio`: Open database studio UI
-- `pnpm check`: Run Biome formatting and linting
+## Environment Configuration
+
+Required environment variables in `apps/server/.env`:
+- `DATABASE_URL`: PostgreSQL connection string (defaults to HAProxy on port 5432)
+- `CORS_ORIGIN`: Frontend URL for CORS (default: http://localhost:3001)
+- `BETTER_AUTH_SECRET`: Authentication secret key
+- `BETTER_AUTH_URL`: Backend URL (default: http://localhost:3000)
+- `SLACK_WEBHOOK_URL`: Slack webhook for monitoring alerts (optional)
+- `POSTGRES_PASSWORD`: Database password for Docker containers
+
+## Health Check Endpoint
+
+The server exposes `/api/health/db` which:
+- Tests database connectivity through HAProxy
+- Returns connection details (database, user, server IP/port)
+- Includes query performance metrics
+- Confirms routing through HAProxy/PgBouncer
+
+## Docker Service Management
+
+The architecture ensures high availability:
+- HAProxy automatically routes around failed PgBouncer instances
+- Health checks mark servers DOWN after 3 failures (6 seconds)
+- Servers marked UP after 2 successful checks (4 seconds)
+- Monitor alerts on any state changes via Slack
+
+To manually restart a failed PgBouncer:
+```bash
+docker start pgb1  # or pgb2, pgb3
+```
