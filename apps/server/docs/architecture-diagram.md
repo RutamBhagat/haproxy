@@ -1,7 +1,5 @@
 # System Architecture Diagram
 
-This diagram illustrates the complete high-availability PostgreSQL connection pooling architecture with HAProxy load balancing.
-
 ```mermaid
 graph TB
     subgraph "Client Layer"
@@ -66,40 +64,3 @@ graph TB
     class DB db
     class MONITOR,SLACK monitor
 ```
-
-## Architecture Components
-
-### 1. **Client Layer**
-- **Next.js Frontend**: Modern React framework running on port 3001 with TailwindCSS and shadcn/ui
-
-### 2. **Application Layer**
-- **Hono Backend**: High-performance web framework with Better Auth for authentication
-- Uses Prisma ORM with Kysely query builder for type-safe database operations
-
-### 3. **Load Balancing Layer**
-- **HAProxy**: Distributes connections using `leastconn` algorithm
-- Health checks every 2 seconds with configurable fall/rise thresholds
-- Provides real-time stats dashboard for monitoring
-
-### 4. **Connection Pooling Layer**
-- **3x PgBouncer Instances**: Provides redundancy and high availability
-- Transaction pooling mode for optimal connection reuse
-- Each instance handles up to 4000 client connections
-
-### 5. **Database Layer**
-- **PostgreSQL**: Primary database with resource limits
-- Data persisted in Docker volume for durability
-
-### 6. **Monitoring & Alerting**
-- **Health Monitor**: Continuously checks PgBouncer status via HAProxy stats
-- **Slack Integration**: Instant notifications on state changes (UP/DOWN)
-- State tracking for accurate change detection
-
-## Key Features
-
-- **High Availability**: Multiple PgBouncer instances ensure no single point of failure
-- **Automatic Failover**: HAProxy automatically routes around failed instances
-- **Connection Efficiency**: Transaction pooling reduces database connection overhead
-- **Real-time Monitoring**: Instant alerts on service degradation
-- **Resource Management**: Defined CPU and memory limits for predictable performance
-- **Scalability**: Supports 12,000+ concurrent connections through pooling

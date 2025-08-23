@@ -1,11 +1,5 @@
 # System Sequence Diagrams
 
-This document contains sequence diagrams illustrating the key operational flows in the high-availability PostgreSQL system.
-
-## 1. Database Request Flow
-
-This diagram shows how a database query flows through the entire stack from the client to PostgreSQL and back.
-
 ```mermaid
 sequenceDiagram
     participant Client as Client Browser
@@ -62,8 +56,6 @@ sequenceDiagram
 
 ## 2. Health Monitoring & Alerting Flow
 
-This diagram illustrates how the health monitor detects PgBouncer failures and sends Slack notifications.
-
 ```mermaid
 sequenceDiagram
     participant Monitor as Health Monitor<br/>(Alpine Container)
@@ -74,7 +66,7 @@ sequenceDiagram
     Note over Monitor,Slack: Monitoring loop runs every 10 seconds
 
     loop Every 10 seconds
-        Monitor->>HAStats: GET /stats;csv
+        Monitor->>HAStats: GET /stats (CSV format)
         activate HAStats
         
         HAStats-->>Monitor: CSV data with<br/>server statuses
@@ -109,8 +101,6 @@ sequenceDiagram
 ```
 
 ## 3. PgBouncer Failover Scenario
-
-This diagram shows what happens when a PgBouncer instance fails and how the system maintains availability.
 
 ```mermaid
 sequenceDiagram
@@ -187,26 +177,3 @@ sequenceDiagram
 
     Note over Client,Slack: System back to full capacity
 ```
-
-## Key Behaviors
-
-### Request Routing
-- HAProxy uses `leastconn` algorithm to distribute load evenly
-- Connection reuse through transaction pooling minimizes overhead
-- Automatic failover ensures continuous availability
-
-### Health Monitoring
-- Checks run every 10 seconds for timely detection
-- State tracking prevents duplicate alerts
-- Slack integration provides instant notifications
-
-### Failure Handling
-- Failed PgBouncers are automatically excluded from routing
-- Remaining instances handle full load
-- Recovery is automatic once service is restored
-
-### Performance Characteristics
-- Health checks: 2-second intervals
-- Failure detection: 6 seconds (3 failed checks)
-- Recovery detection: 4 seconds (2 successful checks)
-- Monitoring cycle: 10 seconds
