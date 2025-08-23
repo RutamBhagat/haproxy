@@ -16,7 +16,6 @@ health.get("/db", async (c) => {
         sql<string>`current_user`.as("user_name"),
         sql<string>`inet_server_addr()::text`.as("server_ip"),
         sql<number>`inet_server_port()`.as("server_port"),
-        sql<Date>`now()`.as("current_time"),
         sql<string>`version()`.as("postgres_version"),
       ])
       .executeTakeFirst();
