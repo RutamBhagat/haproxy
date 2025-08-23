@@ -7,13 +7,19 @@ let instance: Kysely<DB> | null = null;
 
 function getInstance(): Kysely<DB> {
   if (!instance) {
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    });
+
+    pool.on("error", (err) => {
+      console.error("Database pool error:", err);
+    });
+
     const dialect = new PostgresDialect({
-      pool: new Pool({
-        connectionString: process.env.DATABASE_URL,
-        max: 10,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 5000,
-      }),
+      pool,
     });
 
     instance = new Kysely<DB>({
