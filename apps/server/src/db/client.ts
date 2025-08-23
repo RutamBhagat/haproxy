@@ -4,41 +4,86 @@ import type { DB } from "./types";
 import { Pool } from "pg";
 
 let instance: Kysely<DB> | null = null;
+let pool: Pool | null = null;
 
-function getInstance(): Kysely<DB> {
-  if (!instance) {
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+function createPool(): Pool {
+  const newPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+    allowExitOnIdle: false,
+  });
+
+  newPool.on("error", (err) => {
+    console.error("Database pool error:", err);
+  });
+
+  newPool.on("connect", (client) => {
+    console.log("Database client connected");
+    
+    client.on("error", (err) => {
+      console.error("Database client error:", err);
     });
+  });
 
-    pool.on("error", (err) => {
-      console.error("Database pool error:", err);
-    });
+  newPool.on("remove", () => {
+    console.log("Database client removed from pool");
+  });
 
-    const dialect = new PostgresDialect({
-      pool,
-    });
+  return newPool;
+}
 
-    instance = new Kysely<DB>({
-      dialect,
-    });
+function getDb(): Kysely<DB> {
+  try {
+    if (!instance || !pool) {
+      console.log("Initializing database client...");
+      
+      if (pool) {
+        pool.removeAllListeners();
+      }
+      
+      pool = createPool();
+      
+      const dialect = new PostgresDialect({
+        pool,
+      });
 
-    console.log("Database client initialized");
+      instance = new Kysely<DB>({
+        dialect,
+      });
+
+      console.log("Database client initialized");
+    }
+
+    return instance;
+  } catch (error) {
+    console.error("Failed to initialize database client:", error);
+    throw error;
   }
-
-  return instance;
 }
 
 async function destroyDatabaseClient(): Promise<void> {
   if (instance) {
-    await instance.destroy();
-    instance = null;
-    console.log("Database client destroyed");
+    try {
+      await instance.destroy();
+      instance = null;
+      console.log("Database client destroyed");
+    } catch (error) {
+      console.error("Error destroying database client:", error);
+    }
+  }
+  
+  if (pool) {
+    try {
+      pool.removeAllListeners();
+      await pool.end();
+      pool = null;
+      console.log("Database pool destroyed");
+    } catch (error) {
+      console.error("Error destroying database pool:", error);
+    }
   }
 }
 
-export const db = getInstance();
-export { destroyDatabaseClient };
+export { getDb as db, destroyDatabaseClient };
