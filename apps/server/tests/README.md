@@ -7,7 +7,7 @@ pgbench -h localhost -p 5432 -U postgres -d postgres -i -s 50
 # Test with simple protocol
 
 ```bash
-pgbench -h localhost -p 5432 -U postgres -d postgres -c 1000 -j 10 -T 300 -M simple
+pgbench -h localhost -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10
 ```
 
 ## Example output
@@ -16,13 +16,14 @@ pgbench -h localhost -p 5432 -U postgres -d postgres -c 1000 -j 10 -T 300 -M sim
 transaction type: <builtin: TPC-B (sort of)>
 scaling factor: 50
 query mode: simple
-number of clients: 1000
-number of threads: 10
-duration: 300 s
-number of transactions actually processed: 599913
-latency average = 500.245 ms
-initial connection time = 387.932 ms
-tps = 1999.019226 (without initial connection time)
+number of clients: 10500
+number of threads: 150
+duration: 60 s
+number of transactions actually processed: 111259
+latency average = 5725.314 ms
+latency stddev = 987.882 ms
+initial connection time = 2513.284 ms
+tps = 1732.598854 (without initial connection time)
 ```
 
 ## Custom script test (single statements, transaction pool friendly)
