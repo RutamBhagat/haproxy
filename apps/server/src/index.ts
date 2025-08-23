@@ -28,6 +28,23 @@ app.get("/", (c) => {
   return c.text("OK");
 });
 
+app.onError((err, c) => {
+  console.error("Application error:", {
+    message: err.message,
+    stack: err.stack,
+    path: c.req.path,
+    method: c.req.method,
+    timestamp: new Date().toISOString(),
+  });
+
+  return c.json(
+    {
+      error: "Internal Server Error",
+      timestamp: new Date().toISOString(),
+    },
+    500
+  );
+});
 
 serve(
   {
