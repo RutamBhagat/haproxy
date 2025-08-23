@@ -8,7 +8,9 @@ health.get("/db", async (c) => {
   try {
     const startTime = Date.now();
 
-    const result = await db
+    const database = db();
+
+    const result = await database
       .selectNoFrom((_eb) => [
         sql<string>`current_database()`.as("database_name"),
         sql<string>`current_user`.as("user_name"),
