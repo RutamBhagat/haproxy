@@ -4,6 +4,12 @@ generator client {
   moduleFormat = "esm"
 }
 
+generator kysely {
+  provider = "prisma-kysely"
+  output   = "../../src/db"
+  fileName = "types.ts"
+}
+
 datasource db {
   provider = "postgres"
   url      = env("DATABASE_URL")
