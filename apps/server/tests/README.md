@@ -1,3 +1,7 @@
+## Monitoring dashboard
+
+http://192.168.1.100:8404/stats
+
 ## Initialize
 
 ```bash
@@ -7,7 +11,7 @@ PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postgres -d postgres -i 
 ## Test with simple protocol
 
 ```bash
-ulimit -n 20000 && PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10
+ulimit -n 20000 && PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postgres -d postgres -c 105 -j 150 -T 60 -M simple -P 10
 ```
 
 ## Example output
@@ -16,14 +20,14 @@ ulimit -n 20000 && PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postg
 transaction type: <builtin: TPC-B (sort of)>
 scaling factor: 50
 query mode: simple
-number of clients: 10500
-number of threads: 150
+number of clients: 105
+number of threads: 105
 duration: 60 s
-number of transactions actually processed: 111259
-latency average = 5725.314 ms
-latency stddev = 987.882 ms
-initial connection time = 2513.284 ms
-tps = 1732.598854 (without initial connection time)
+number of transactions actually processed: 264816
+latency average = 23.780 ms
+latency stddev = 11.936 ms
+initial connection time = 22.619 ms
+tps = 4413.657304 (without initial connection time)
 ```
 
 ## Custom script test (single statements, transaction pool friendly)
@@ -41,10 +45,10 @@ query mode: simple
 number of clients: 100
 number of threads: 10
 duration: 60 s
-number of transactions actually processed: 855841
-latency average = 7.010 ms
-initial connection time = 12.075 ms
-tps = 14265.844597 (without initial connection time)
+number of transactions actually processed: 2042505
+latency average = 2.936 ms
+initial connection time = 34.693 ms
+tps = 34059.170698 (without initial connection time)
 ```
 
 ## Testing High Availability During Load
