@@ -5,7 +5,7 @@ services:
     image: postgres
     container_name: haproxy-postgres
     environment:
-      POSTGRES_DB: haproxy
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
@@ -35,8 +35,7 @@ services:
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRESQL_DATABASE=haproxy
-      - PGBOUNCER_DATABASE=haproxy
+      - POSTGRESQL_DATABASE=postgres
       - PGBOUNCER_AUTH_TYPE=trust
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
@@ -75,8 +74,7 @@ services:
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRESQL_DATABASE=haproxy
-      - PGBOUNCER_DATABASE=haproxy
+      - POSTGRESQL_DATABASE=postgres
       - PGBOUNCER_AUTH_TYPE=trust
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
@@ -115,8 +113,7 @@ services:
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRESQL_DATABASE=haproxy
-      - PGBOUNCER_DATABASE=haproxy
+      - POSTGRESQL_DATABASE=postgres
       - PGBOUNCER_AUTH_TYPE=trust
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
