@@ -28,6 +28,8 @@ services:
   pgb1:
     image: bitnami/pgbouncer:1
     container_name: pgb1
+    ports:
+      - "6432:6432"
     environment:
       - POSTGRESQL_HOST=haproxy-postgres
       - POSTGRESQL_PORT=5432
@@ -65,6 +67,8 @@ services:
   pgb2:
     image: bitnami/pgbouncer:1
     container_name: pgb2
+    ports:
+      - "6433:6432"
     environment:
       - POSTGRESQL_HOST=haproxy-postgres
       - POSTGRESQL_PORT=5432
@@ -102,6 +106,8 @@ services:
   pgb3:
     image: bitnami/pgbouncer:1
     container_name: pgb3
+    ports:
+      - "6434:6432"
     environment:
       - POSTGRESQL_HOST=haproxy-postgres
       - POSTGRESQL_PORT=5432
