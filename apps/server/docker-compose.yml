@@ -142,54 +142,9 @@ services:
       retries: 5
     restart: unless-stopped
 
-  haproxy:
-    image: haproxy:2.8-alpine
-    container_name: haproxy
-    ports:
-      - "5432:5432"
-      - "8404:8404"
-    volumes:
-      - ./docker/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    depends_on:
-      - pgb1
-      - pgb2
-      - pgb3
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-        reservations:
-          cpus: "0.25"
-          memory: 128M
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
-    healthcheck:
-      test: ["CMD", "haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg", "-c"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    restart: unless-stopped
-
-  health-monitor:
-    image: alpine:latest
-    container_name: health-monitor
-    environment:
-      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
-    volumes:
-      - ./docker/monitoring/monitor.sh:/monitor.sh:ro
-    depends_on:
-      haproxy:
-        condition: service_healthy
-    command: sh /monitor.sh
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "sh", "-c", "pgrep -f monitor.sh || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # HAProxy removed - now handled by Vagrant VMs with keepalived
+  # Connect to 192.168.56.100:5432 (Virtual IP) for database access
+  # Stats available at http://192.168.56.100:8404/stats
 
 volumes:
   haproxy_postgres_data:
