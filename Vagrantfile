@@ -1,0 +1,39 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+  
+  # HAProxy 1 - Master
+  config.vm.define "haproxy1" do |h1|
+    h1.vm.hostname = "haproxy1"
+    h1.vm.network "private_network", ip: "192.168.56.10"
+    h1.vm.provider "virtualbox" do |vb|
+      vb.memory = "512"
+      vb.cpus = 1
+    end
+    h1.vm.provision "shell", inline: <<-SHELL
+      apt-get update
+      apt-get install -y haproxy keepalived
+      cp /vagrant/vagrant/haproxy.cfg /etc/haproxy/haproxy.cfg
+      cp /vagrant/vagrant/keepalived-master.conf /etc/keepalived/keepalived.conf
+      systemctl restart haproxy
+      systemctl restart keepalived
+    SHELL
+  end
+  
+  # HAProxy 2 - Backup
+  config.vm.define "haproxy2" do |h2|
+    h2.vm.hostname = "haproxy2"
+    h2.vm.network "private_network", ip: "192.168.56.11"
+    h2.vm.provider "virtualbox" do |vb|
+      vb.memory = "512"
+      vb.cpus = 1
+    end
+    h2.vm.provision "shell", inline: <<-SHELL
+      apt-get update
+      apt-get install -y haproxy keepalived
+      cp /vagrant/vagrant/haproxy.cfg /etc/haproxy/haproxy.cfg
+      cp /vagrant/vagrant/keepalived-backup.conf /etc/keepalived/keepalived.conf
+      systemctl restart haproxy
+      systemctl restart keepalived
+    SHELL
+  end
+end
