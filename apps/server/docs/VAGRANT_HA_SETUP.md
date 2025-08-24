@@ -1,9 +1,11 @@
 # HAProxy High Availability Setup with Vagrant
 
 ## Overview
+
 This setup eliminates HAProxy as a single point of failure by using 2 HAProxy instances with keepalived managing a Virtual IP (VIP). This is the same pattern used by GitHub, GitLab, and other production systems.
 
 ## Architecture
+
 ```
 Node.js App
     ↓
@@ -19,18 +21,23 @@ PostgreSQL
 ## Quick Start
 
 ### 1. Start Docker containers (PostgreSQL + PgBouncer)
+
 ```bash
 cd apps/server
 docker-compose up -d
 ```
 
+Note: Do not use docker desktop use docker engine
+
 ### 2. Start Vagrant VMs (HAProxy + Keepalived)
+
 ```bash
 cd apps/server
 vagrant up
 ```
 
 ### 3. Connect to database via Virtual IP
+
 ```bash
 # Your app should connect to:
 psql -h 192.168.56.100 -p 5432 -U postgres -d haproxy
@@ -40,11 +47,13 @@ DATABASE_URL=postgresql://postgres:password@192.168.56.100:5432/haproxy
 ```
 
 ### 4. View HAProxy stats
+
 Open http://192.168.56.100:8404/stats in your browser
 
 ## Testing Failover
 
 ### Test automatic failover (2-3 seconds)
+
 ```bash
 # Terminal 1: Watch VIP location
 vagrant ssh haproxy1 -c "watch ip addr show eth1"
@@ -56,12 +65,14 @@ vagrant halt haproxy1
 ```
 
 ### Verify failover worked
+
 ```bash
 # Connection should still work through VIP
 psql -h 192.168.56.100 -p 5432 -U postgres -d haproxy -c "SELECT 1"
 ```
 
 ### Restore failed node
+
 ```bash
 vagrant up haproxy1
 # haproxy1 will rejoin as backup
@@ -107,28 +118,32 @@ This exact configuration can be deployed to production:
 ## Troubleshooting
 
 ### Check keepalived status
+
 ```bash
 vagrant ssh haproxy1 -c "sudo systemctl status keepalived"
 vagrant ssh haproxy2 -c "sudo systemctl status keepalived"
 ```
 
 ### Check which node has the VIP
+
 ```bash
 vagrant ssh haproxy1 -c "ip addr show eth1 | grep 192.168.56.100"
 vagrant ssh haproxy2 -c "ip addr show eth1 | grep 192.168.56.100"
 ```
 
 ### View keepalived logs
+
 ```bash
 vagrant ssh haproxy1 -c "sudo journalctl -u keepalived -f"
 ```
 
 ### Test HAProxy directly (bypassing VIP)
+
 ```bash
 # Test haproxy1 directly
 psql -h 192.168.56.10 -p 5432 -U postgres -d haproxy
 
-# Test haproxy2 directly  
+# Test haproxy2 directly
 psql -h 192.168.56.11 -p 5432 -U postgres -d haproxy
 ```
 
