@@ -47,7 +47,7 @@ Open http://192.168.56.100:8404/stats in your browser
 ### Test automatic failover (2-3 seconds)
 ```bash
 # Terminal 1: Watch VIP location
-vagrant ssh haproxy1 -c "watch ip addr show enp0s8"
+vagrant ssh haproxy1 -c "watch ip addr show eth1"
 
 # Terminal 2: Simulate failure
 vagrant halt haproxy1
@@ -101,7 +101,7 @@ This exact configuration can be deployed to production:
 
 1. Replace Vagrant VMs with EC2 instances
 2. Use same keepalived configurations
-3. Adjust network interface name if needed (eth0 instead of enp0s8)
+3. Adjust network interface name if needed (eth0 for cloud environments)
 4. Use Elastic IP or VPC internal IP as Virtual IP
 
 ## Troubleshooting
@@ -114,8 +114,8 @@ vagrant ssh haproxy2 -c "sudo systemctl status keepalived"
 
 ### Check which node has the VIP
 ```bash
-vagrant ssh haproxy1 -c "ip addr show enp0s8 | grep 192.168.56.100"
-vagrant ssh haproxy2 -c "ip addr show enp0s8 | grep 192.168.56.100"
+vagrant ssh haproxy1 -c "ip addr show eth1 | grep 192.168.56.100"
+vagrant ssh haproxy2 -c "ip addr show eth1 | grep 192.168.56.100"
 ```
 
 ### View keepalived logs
