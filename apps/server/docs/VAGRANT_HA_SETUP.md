@@ -18,16 +18,25 @@ PgBouncer1, PgBouncer2, PgBouncer3
 PostgreSQL
 ```
 
+## Prerequisites
+
+- Docker Engine (Do not use Docker Desktop it conflicts with vagrant)
+- Vagrant 2.x+ with VirtualBox
+- PostgreSQL client tools (for testing)
+
 ## Quick Start
 
 ### 1. Start Docker containers (PostgreSQL + PgBouncer)
 
 ```bash
 cd apps/server
-docker-compose up -d
+docker compose up -d
 ```
 
-Note: Do not use docker desktop use docker engine
+Verify containers are running:
+```bash
+docker ps | grep -E "postgres|pgb"
+```
 
 ### 2. Start Vagrant VMs (HAProxy + Keepalived)
 
@@ -36,15 +45,19 @@ cd apps/server
 vagrant up
 ```
 
-### 3. Connect to database via Virtual IP
+Note: The `dpkg-preconfigure: unable to re-open stdin` warnings during provisioning are harmless and can be ignored.
+
+### 3. Update your application configuration
 
 ```bash
-# Your app should connect to:
-psql -h 192.168.56.100 -p 5432 -U postgres -d haproxy
-
-# Or update your .env:
+# Update your .env file:
 DATABASE_URL=postgresql://postgres:password@192.168.56.100:5432/haproxy
+
+# Test connection from within a VM:
+vagrant ssh haproxy1 -c "PGPASSWORD=password psql -h 192.168.56.100 -p 5432 -U postgres -d haproxy -c 'SELECT 1'"
 ```
+
+**Note**: Direct connection from host to VIP (192.168.56.100) may not work due to VirtualBox networking. Applications should run inside VMs or Docker containers on the same network.
 
 ### 4. View HAProxy stats
 
@@ -56,7 +69,7 @@ Open http://192.168.56.100:8404/stats in your browser
 
 ```bash
 # Terminal 1: Watch VIP location
-vagrant ssh haproxy1 -c "watch ip addr show eth1"
+vagrant ssh haproxy1 -c "watch 'ip addr show enp0s8 | grep 192.168.56'"
 
 # Terminal 2: Simulate failure
 vagrant halt haproxy1
@@ -115,6 +128,28 @@ This exact configuration can be deployed to production:
 3. Adjust network interface name if needed (eth0 for cloud environments)
 4. Use Elastic IP or VPC internal IP as Virtual IP
 
+## Common Issues & Solutions
+
+### Keepalived fails with "interface eth1 doesn't exist"
+
+The network interface name varies by system. Check actual interface:
+```bash
+vagrant ssh haproxy1 -c "ip addr | grep 192.168.56"
+```
+
+If it shows `enp0s8` instead of `eth1`, fix it:
+```bash
+vagrant ssh haproxy1 -c "sudo sed -i 's/interface eth1/interface enp0s8/g' /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"
+vagrant ssh haproxy2 -c "sudo sed -i 's/interface eth1/interface enp0s8/g' /etc/keepalived/keepalived.conf && sudo systemctl restart keepalived"
+```
+
+### Cannot connect from host to Virtual IP
+
+This is a VirtualBox limitation. Solutions:
+1. Run your application in Docker with `--network host`
+2. Use port forwarding in Vagrantfile
+3. Test from within VMs using `vagrant ssh`
+
 ## Troubleshooting
 
 ### Check keepalived status
@@ -127,8 +162,8 @@ vagrant ssh haproxy2 -c "sudo systemctl status keepalived"
 ### Check which node has the VIP
 
 ```bash
-vagrant ssh haproxy1 -c "ip addr show eth1 | grep 192.168.56.100"
-vagrant ssh haproxy2 -c "ip addr show eth1 | grep 192.168.56.100"
+vagrant ssh haproxy1 -c "ip addr show enp0s8 | grep 192.168.56.100"
+vagrant ssh haproxy2 -c "ip addr show enp0s8 | grep 192.168.56.100"
 ```
 
 ### View keepalived logs
