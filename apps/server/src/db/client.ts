@@ -1,17 +1,15 @@
 import { Kysely, PostgresDialect } from "kysely";
-import { Pool } from "pg";
-import type { DB } from "./types";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  allowExitOnIdle: false,
+import type { DB } from "./types";
+import { Pool } from "pg";
+
+const dialect = new PostgresDialect({
+  pool: new Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 10,
+  }),
 });
 
 export const db = new Kysely<DB>({
-  dialect: new PostgresDialect({
-    pool,
-  }),
+  dialect,
 });
