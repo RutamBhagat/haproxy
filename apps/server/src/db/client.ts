@@ -14,23 +14,6 @@ function createPool(): Pool {
     connectionTimeoutMillis: 5000,
     allowExitOnIdle: false,
   });
-
-  newPool.on("error", (err) => {
-    console.error("Database pool error:", err);
-  });
-
-  newPool.on("connect", (client) => {
-    console.log("Database client connected");
-    
-    client.on("error", (err) => {
-      console.error("Database client error:", err);
-    });
-  });
-
-  newPool.on("remove", () => {
-    console.log("Database client removed from pool");
-  });
-
   return newPool;
 }
 

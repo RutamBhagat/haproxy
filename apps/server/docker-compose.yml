@@ -5,7 +5,7 @@ services:
     image: postgres
     container_name: haproxy-postgres
     environment:
-      POSTGRES_DB: haproxy
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     volumes:
@@ -28,17 +28,18 @@ services:
   pgb1:
     image: bitnami/pgbouncer:1
     container_name: pgb1
+    ports:
+      - "6432:6432"
     environment:
       - POSTGRESQL_HOST=haproxy-postgres
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRESQL_DATABASE=haproxy
+      - POSTGRESQL_DATABASE=postgres
       - PGBOUNCER_AUTH_TYPE=trust
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
       - PGBOUNCER_MAX_CLIENT_CONN=4000
-      - PGBOUNCER_SERVER_LIFETIME=3600
       - PGBOUNCER_STATS_PERIOD=60
     depends_on:
       postgres:
@@ -65,17 +66,18 @@ services:
   pgb2:
     image: bitnami/pgbouncer:1
     container_name: pgb2
+    ports:
+      - "6433:6432"
     environment:
       - POSTGRESQL_HOST=haproxy-postgres
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRESQL_DATABASE=haproxy
+      - POSTGRESQL_DATABASE=postgres
       - PGBOUNCER_AUTH_TYPE=trust
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
       - PGBOUNCER_MAX_CLIENT_CONN=4000
-      - PGBOUNCER_SERVER_LIFETIME=3600
       - PGBOUNCER_STATS_PERIOD=60
     depends_on:
       postgres:
@@ -102,17 +104,18 @@ services:
   pgb3:
     image: bitnami/pgbouncer:1
     container_name: pgb3
+    ports:
+      - "6434:6432"
     environment:
       - POSTGRESQL_HOST=haproxy-postgres
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_USERNAME=postgres
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRESQL_DATABASE=haproxy
+      - POSTGRESQL_DATABASE=postgres
       - PGBOUNCER_AUTH_TYPE=trust
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
       - PGBOUNCER_MAX_CLIENT_CONN=4000
-      - PGBOUNCER_SERVER_LIFETIME=3600
       - PGBOUNCER_STATS_PERIOD=60
     depends_on:
       postgres:
@@ -136,47 +139,18 @@ services:
       retries: 5
     restart: unless-stopped
 
-  haproxy:
-    image: haproxy:2.8-alpine
-    container_name: haproxy
-    ports:
-      - "5432:5432"
-      - "8404:8404"
-    volumes:
-      - ./docker/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    depends_on:
-      - pgb1
-      - pgb2
-      - pgb3
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-        reservations:
-          cpus: "0.25"
-          memory: 128M
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
-    healthcheck:
-      test: ["CMD", "haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg", "-c"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    restart: unless-stopped
+  # HAProxy removed - now handled by Vagrant VMs with keepalived
+  # Connect to 192.168.1.100:5432 (Virtual IP) for database access
+  # Stats available at http://192.168.1.100:8404/stats
 
   health-monitor:
     image: alpine:latest
     container_name: health-monitor
     environment:
       - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - HAPROXY_STATS_URL=${HAPROXY_STATS_URL}
     volumes:
       - ./docker/monitoring/monitor.sh:/monitor.sh:ro
-    depends_on:
-      haproxy:
-        condition: service_healthy
     command: sh /monitor.sh
     restart: unless-stopped
     healthcheck:
