@@ -50,18 +50,22 @@ Note: The `dpkg-preconfigure: unable to re-open stdin` warnings during provision
 ### 3. Update your application configuration
 
 ```bash
-# Update your .env file:
-DATABASE_URL=postgresql://postgres:password@192.168.56.100:5432/haproxy
+# Update your .env file (using port-forwarded HAProxy):
+DATABASE_URL=postgresql://postgres:password@localhost:15432/postgres
 
 # Test connection from within a VM:
-vagrant ssh haproxy1 -c "PGPASSWORD=password psql -h 192.168.56.100 -p 5432 -U postgres -d haproxy -c 'SELECT 1'"
+vagrant ssh haproxy1 -c "PGPASSWORD=password psql -h 192.168.56.100 -p 5432 -U postgres -d postgres -c 'SELECT 1'"
 ```
 
 **Note**: Direct connection from host to VIP (192.168.56.100) may not work due to VirtualBox networking. Applications should run inside VMs or Docker containers on the same network.
 
 ### 4. View HAProxy stats
 
-Open http://192.168.56.100:8404/stats in your browser
+```bash
+# Through port forwarding from whichever node has the VIP:
+http://localhost:18404/stats  # haproxy1 stats
+http://localhost:28404/stats  # haproxy2 stats
+```
 
 ## Testing Failover
 
@@ -81,7 +85,7 @@ vagrant halt haproxy1
 
 ```bash
 # Connection should still work through VIP
-psql -h 192.168.56.100 -p 5432 -U postgres -d haproxy -c "SELECT 1"
+vagrant ssh haproxy2 -c "PGPASSWORD=password psql -h 192.168.56.100 -p 5432 -U postgres -d postgres -c 'SELECT 1'"
 ```
 
 ### Restore failed node
@@ -175,11 +179,11 @@ vagrant ssh haproxy1 -c "sudo journalctl -u keepalived -f"
 ### Test HAProxy directly (bypassing VIP)
 
 ```bash
-# Test haproxy1 directly
-psql -h 192.168.56.10 -p 5432 -U postgres -d haproxy
+# Test haproxy1 directly (from host using port forwarding)
+PGPASSWORD=password psql -h localhost -p 15432 -U postgres -d postgres
 
-# Test haproxy2 directly
-psql -h 192.168.56.11 -p 5432 -U postgres -d haproxy
+# Test haproxy2 directly (from host using port forwarding)
+PGPASSWORD=password psql -h localhost -p 25432 -U postgres -d postgres
 ```
 
 ## Files Structure
