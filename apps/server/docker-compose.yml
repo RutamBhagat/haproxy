@@ -143,8 +143,8 @@ services:
     restart: unless-stopped
 
   # HAProxy removed - now handled by Vagrant VMs with keepalived
-  # Connect to 192.168.56.100:5432 (Virtual IP) for database access
-  # Stats available at http://192.168.56.100:8404/stats
+  # Connect to 192.168.1.100:5432 (Virtual IP) for database access
+  # Stats available at http://192.168.1.100:8404/stats
 
 volumes:
   haproxy_postgres_data:
