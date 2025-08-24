@@ -1,13 +1,13 @@
-# Initialize
+## Initialize
 
 ```bash
-vagrant ssh haproxy1 -c "PGPASSWORD=password pgbench -h 192.168.56.100 -p 5432 -U postgres -d postgres -i -s 50"
+PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postgres -d postgres -i -s 50
 ```
 
-# Test with simple protocol
+## Test with simple protocol
 
 ```bash
-vagrant ssh haproxy1 -c "ulimit -n 20000 && PGPASSWORD=password pgbench -h 192.168.56.100 -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10"
+ulimit -n 20000 && PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10
 ```
 
 ## Example output
@@ -29,13 +29,13 @@ tps = 1732.598854 (without initial connection time)
 ## Custom script test (single statements, transaction pool friendly)
 
 ```bash
-vagrant ssh haproxy1 -c "PGPASSWORD=password pgbench -h 192.168.56.100 -p 5432 -U postgres -d postgres -c 100 -j 10 -T 60 -f /vagrant/tests/pgbench-simple.sql"
+PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postgres -d postgres -c 100 -j 10 -T 60 -f tests/pgbench-simple.sql
 ```
 
 ## Example output
 
 ```bash
-transaction type: pgbench-simple.sql
+transaction type: tests/pgbench-simple.sql
 scaling factor: 1
 query mode: simple
 number of clients: 100
@@ -45,4 +45,24 @@ number of transactions actually processed: 855841
 latency average = 7.010 ms
 initial connection time = 12.075 ms
 tps = 14265.844597 (without initial connection time)
+```
+
+## Testing High Availability During Load
+
+Run this in one terminal to generate continuous load:
+```bash
+# Continuous load test
+while true; do
+  PGPASSWORD=password pgbench -h 192.168.1.100 -p 5432 -U postgres -d postgres -c 50 -j 5 -T 30 -M simple
+  sleep 5
+done
+```
+
+Then in another terminal, test failover:
+```bash
+# Simulate HAProxy failure
+vagrant halt haproxy1
+
+# Watch for brief connection interruption (2-3 seconds)
+# Load should resume automatically when VIP moves to haproxy2
 ```
