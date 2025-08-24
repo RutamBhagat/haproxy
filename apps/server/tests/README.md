@@ -1,13 +1,13 @@
 # Initialize
 
 ```bash
-pgbench -h localhost -p 5432 -U postgres -d postgres -i -s 50
+vagrant ssh haproxy1 -c "PGPASSWORD=password pgbench -h 192.168.56.100 -p 5432 -U postgres -d haproxy -i -s 50"
 ```
 
 # Test with simple protocol
 
 ```bash
-ulimit -n 20000 && pgbench -h localhost -p 5432 -U postgres -d postgres -c 10500 -j 150 -T 60 -M simple -P 10
+vagrant ssh haproxy1 -c "ulimit -n 20000 && PGPASSWORD=password pgbench -h 192.168.56.100 -p 5432 -U postgres -d haproxy -c 10500 -j 150 -T 60 -M simple -P 10"
 ```
 
 ## Example output
@@ -29,7 +29,7 @@ tps = 1732.598854 (without initial connection time)
 ## Custom script test (single statements, transaction pool friendly)
 
 ```bash
-pgbench -h localhost -p 5432 -U postgres -d postgres -c 100 -j 10 -T 60 -f pgbench-simple.sql
+vagrant ssh haproxy1 -c "PGPASSWORD=password pgbench -h 192.168.56.100 -p 5432 -U postgres -d haproxy -c 100 -j 10 -T 60 -f /vagrant/tests/pgbench-simple.sql"
 ```
 
 ## Example output
