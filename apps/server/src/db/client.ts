@@ -23,7 +23,6 @@ function createPool(): Pool {
     console.log("Database client connected");
     
     client.on("error", (err) => {
-      console.error("Database client error:", err);
     });
   });
 
