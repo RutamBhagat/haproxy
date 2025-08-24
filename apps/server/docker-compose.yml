@@ -40,7 +40,6 @@ services:
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
       - PGBOUNCER_MAX_CLIENT_CONN=4000
-      - PGBOUNCER_SERVER_LIFETIME=3600
       - PGBOUNCER_STATS_PERIOD=60
     depends_on:
       postgres:
@@ -79,7 +78,6 @@ services:
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
       - PGBOUNCER_MAX_CLIENT_CONN=4000
-      - PGBOUNCER_SERVER_LIFETIME=3600
       - PGBOUNCER_STATS_PERIOD=60
     depends_on:
       postgres:
@@ -118,7 +116,6 @@ services:
       - PGBOUNCER_POOL_MODE=transaction
       - PGBOUNCER_DEFAULT_POOL_SIZE=70
       - PGBOUNCER_MAX_CLIENT_CONN=4000
-      - PGBOUNCER_SERVER_LIFETIME=3600
       - PGBOUNCER_STATS_PERIOD=60
     depends_on:
       postgres:
