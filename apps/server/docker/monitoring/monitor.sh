@@ -3,8 +3,8 @@ set -e
 
 # Configuration
 SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+HAPROXY_STATS_URL="${HAPROXY_STATS_URL}/stats"
 CHECK_INTERVAL=10
-HAPROXY_STATS_URL="http://haproxy:8404/stats"
 STATE_FILE="/tmp/pgbouncer_states.txt"
 # state file is stored in key:value format
 # pgb1:UP
