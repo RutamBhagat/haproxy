@@ -76,12 +76,12 @@ graph TB
     classDef db fill:#fce4ec,stroke:#880e4f,stroke-width:2px
     classDef monitor fill:#f1f8e9,stroke:#33691e,stroke-width:2px
 
-    class WEB client
-    class API app
-    class VIP vip
-    class HAPROXY1,HAPROXY2 lb
-    class KEEPALIVED1,KEEPALIVED2 keepalived
-    class PGB1,PGB2,PGB3 pool
-    class DB db
-    class MONITOR,SLACK monitor
+    class WEB client;
+    class API app;
+    class VIP vip;
+    class HAPROXY1,HAPROXY2 lb;
+    class KEEPALIVED1,KEEPALIVED2 keepalived;
+    class PGB1,PGB2,PGB3 pool;
+    class DB db;
+    class MONITOR,SLACK monitor;
 ```
